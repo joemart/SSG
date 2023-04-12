@@ -2,53 +2,48 @@ import {useRouter} from "next/router"
 import useSWR from "swr"
 import Head from "next/head"
 import {Container, Row, Col} from "react-bootstrap"
-// import fs from "fs"
+import pokemon from "../../../public/pokemon.json"
 
-
-// const pokemonDir = "/pokemon/"
 const fetcher = 
     async (endpoint) => fetch(`http://localhost:3000${endpoint}`)
         .then(res=>res.json())
-        .then(res=>res)
 
 //difference between async getPokemon
 //and no async?
-const getPokemon = async (name) =>{
-
-    console.log("In getPokemon " +name)
-    const myAPI = `/api/pokemon`
-    const pokemon = `?name=${name}`
-    const myEndpoint = myAPI+pokemon
-
-    const {data, error} = await useSWR(myEndpoint,fetcher)
-
-    if (error) return null
-    return data
-}
-
-// export async function getStaticPaths(){
-//     const fileNames = fs.readdirSync()
-//     console.log("Poop")
+// const getPokemon = async (name) =>{
+//     const myAPI = `/api/pokemon`
+//     const pokemon = `?name=${name}`
+//     const myEndpoint = myAPI+pokemon
+//     const data = fetcher(myEndpoint)
+//     return data
 // }
 
-export async function getServerSideProps({params}){
-    const data = await getPokemon(params.name)
+export async function getStaticPaths(){
+    // console.log(pokemon)
+    return{
+        paths: pokemon.map(item=>({
+                params:{
+                    name: item.name.english}
+                })
+            ),
+        fallback: false
+    }
+}
 
+export async function getStaticProps({params:{name}}){
     return {
         props: {
-            data
+            data: pokemon.filter(({name:{english}})=> english === name)
         }
     }
 }
 
-// export async function getStaticProps(){}
 
-export default  () => {
-    
-    // const data = getPokemon()
-    const {data, error} =  useSWR(myEndpoint,fetcher)
 
-    return<><div>
+export default  ({data:[data]}) => {
+
+    return<>
+    <div>
         <Head>
             <title>{data && data.name.english || "Pokemon"}</title>
         </Head>
